@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="-构建工具," />
+
+
+
+
+
+
+
+
+
+
+<meta name="keywords" content="-构建工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMake在构建MSVC项目中的应用">
+<meta property="og:url" content="http://yoursite.com/2018/06/08/CMake在构建MSVC项目中的应用/index.html">
+<meta property="og:site_name" content="DevWang&#39;s Blog">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://wx1.sinaimg.cn/mw690/7f297226gy1fs3mkz72t7j214x0f57bu.jpg">
+<meta property="og:image" content="http://wx4.sinaimg.cn/mw690/7f297226gy1fs3mky6t86j215w0cnwl2.jpg">
+<meta property="og:image" content="http://wx4.sinaimg.cn/mw690/7f297226gy1fs7jf81iujj20s80gygrh.jpg">
+<meta property="og:image" content="http://wx1.sinaimg.cn/mw690/7f297226gy1fs7jf8oj49j206m0c274o.jpg">
+<meta property="og:image" content="http://wx4.sinaimg.cn/mw690/7f297226gy1fs7jf7bmpaj20it0baq3v.jpg">
+<meta property="og:updated_time" content="2018-06-12T08:46:41.047Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CMake在构建MSVC项目中的应用">
+<meta name="twitter:image" content="http://wx1.sinaimg.cn/mw690/7f297226gy1fs3mkz72t7j214x0f57bu.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'DevWang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/08/CMake在构建MSVC项目中的应用/"/>
+
+
+
+
+
+  <title>CMake在构建MSVC项目中的应用 | DevWang's Blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">DevWang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">人生太长，使用贪心算法，一般得不到最优解。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-站点介绍">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            站点介绍
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/08/CMake在构建MSVC项目中的应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DevWang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="DevWang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CMake在构建MSVC项目中的应用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-08T13:04:47+08:00">
+                2018-06-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工具使用教程/" itemprop="url" rel="index">
+                    <span itemprop="name">工具使用教程</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/06/08/CMake在构建MSVC项目中的应用/" class="leancloud_visitors" data-flag-title="CMake在构建MSVC项目中的应用">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,945
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><br><br><a id="more"></a></p>
+<hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><br></p>
+<blockquote>
+<ul>
+<li>因工作需要，使用CMake工具来构建MSVC中的Project；  </li>
+<li>文章旨在作为CMake使用的入门指南；  </li>
+</ul>
+</blockquote>
+<p><br></p>
+<h2 id="CMake简介"><a href="#CMake简介" class="headerlink" title="CMake简介"></a>CMake简介</h2><p><br></p>
+<blockquote>
+<ul>
+<li>CMake是一个跨平台的安装（编译）工具，可以用简单的语句来描述所有平台的安装(编译过程)。他能够输出各种各样的makefile或者project文件，能测试编译器所支持的C++特性,类似UNIX下的automake。只是 CMake 的组态档取名CMakeLists.txt；</li>
+<li>顶层CMakeList.txt是核心文件，其他子CMakeList.txt分别是对顶层的一种扩充；</li>
+<li>如今很多优秀开源项目都使用了CMake作为工程构建工具，比如说亚马逊的AWS，著名开源CAX软件FreeCAD等；  </li>
+</ul>
+</blockquote>
+<p><br></p>
+<h2 id="CMake的安装"><a href="#CMake的安装" class="headerlink" title="CMake的安装"></a>CMake的安装</h2><p><br></p>
+<blockquote>
+<ul>
+<li>安装包地址 <a href="https://cmake.org/download；" target="_blank" rel="noopener">https://cmake.org/download；</a></li>
+<li>笔者安装的环境是win10 OS下，使用的CMake版本是cmake 3.6.1，开发环境MSVC10；  </li>
+<li>安装过程比较容易，可参考网上一般教程；  </li>
+</ul>
+</blockquote>
+<p><br></p>
+<h2 id="CMake的使用"><a href="#CMake的使用" class="headerlink" title="CMake的使用"></a>CMake的使用</h2><h3 id="CMake的使用方法"><a href="#CMake的使用方法" class="headerlink" title="CMake的使用方法"></a>CMake的使用方法</h3><p><br></p>
+<blockquote>
+<ul>
+<li>在 windows使用的是CMake提供的图形GUI界面；</li>
+</ul>
+</blockquote>
+<p><img src="http://wx1.sinaimg.cn/mw690/7f297226gy1fs3mkz72t7j214x0f57bu.jpg" alt="图片"></p>
+<p><br></p>
+<h3 id="CMakeLists-txt编写"><a href="#CMakeLists-txt编写" class="headerlink" title="CMakeLists.txt编写"></a>CMakeLists.txt编写</h3><p><br></p>
+<blockquote>
+<ul>
+<li>文件命名应区分大小写；</li>
+<li>在需要配置的项目里，在顶层文件夹位置创建顶层CMakeList.txt，每一级文件夹下创建一个CMakeLists.txt；</li>
+<li>顶层CMakeList.txt实例；<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cmake_minimum_required (VERSION 2.6)  </span><br><span class="line">// Maps to a solution file (Tutorial.sln). The solution will</span><br><span class="line">// have all targets (exe, lib, dll) as projects (.vcproj)</span><br><span class="line">project (Tutorial)</span><br><span class="line">// Turn on the ability to create folders to organize projects(.vcproj)</span><br><span class="line">// It creates &quot;CMakePredefinedTargets&quot; folder by default and adds Cmake</span><br><span class="line">// defined projects like INSTALL.vcproj and ZERO_CHECK.vcproj</span><br><span class="line">set_property(GLOBAL PROPERTY USE_FOLDERS ON)</span><br><span class="line">// Set compiler flags and options.`</span><br><span class="line">// Here it is setting the Visual Studio warning level to 4</span><br><span class="line">set (CMAKE_CXX_FLAGS &quot;$&#123;CMAKE_CXX_FLAGS&#125; /W4&quot;)</span><br><span class="line">set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY $&#123;CMAKE_BINARY_DIR&#125;/lib)</span><br><span class="line">// Command to output information to the console</span><br><span class="line">// Useful for displaying errors, warnings, and debugging</span><br><span class="line">message (“cxx Flags: ” $&#123;CMAKE_CXX_FLAGS&#125;)</span><br><span class="line">Sub-directories where more CMakeLists.txt exist </span><br><span class="line">add_subdirectory(src) </span><br><span class="line">add_subdirectory(lib)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li>以上CMakeList.txt实现了下述功能：</li>
+</ul>
+<ol>
+<li>指定CMake版本号指定解决方案名称；</li>
+<li>给同一sln下多个项目设置文件夹，进行分类管理；</li>
+<li>告诉编译器一些信息（警告等级）；</li>
+<li>将当前目录映射到工程文件夹；  </li>
+</ol>
+</blockquote>
+<p><br></p>
+<h2 id="CMake与Visual-Studio"><a href="#CMake与Visual-Studio" class="headerlink" title="CMake与Visual Studio"></a>CMake与Visual Studio</h2><h3 id="CMake在Visual-Studio中的使用"><a href="#CMake在Visual-Studio中的使用" class="headerlink" title="CMake在Visual Studio中的使用"></a>CMake在Visual Studio中的使用</h3><p><br></p>
+<blockquote>
+<ul>
+<li>可以在CMakeLists.txt中定义，构建系统项目的“规则”或者“项目设置”；</li>
+<li>VS在编译sln时，除了产生典型的中间文件.obj，还会有更多的临时文件.sln, .sbr, .suo, .vcxproj.user, .vcxproj.filters。可通过定制CMakeList，将这些不需要放到源目录（src）中的文件指定位置存放；</li>
+<li>VS开发人员可能会考虑项目文件(.vcproj)作为“源”，因为它包括添加、删除和修改源文件的依赖关系等。然而，在CMake中你也可以认为这是一个中间文件，CMake建议将他排除在源目录之外；<br><br></li>
+</ul>
+</blockquote>
+<h3 id="CMake-Command-Mapping-To-VS"><a href="#CMake-Command-Mapping-To-VS" class="headerlink" title="CMake Command Mapping To VS"></a>CMake Command Mapping To VS</h3><table>
+<thead>
+<tr>
+<th>VISUAL STUDIO</th>
+<th style="text-align:center">CMAKE COMMAND</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.sln</td>
+<td style="text-align:center">Project</td>
+</tr>
+<tr>
+<td>.vcproj</td>
+<td style="text-align:center">target name in the command add_executable of add_library</td>
+</tr>
+<tr>
+<td>.exe</td>
+<td style="text-align:center">add_executable</td>
+</tr>
+<tr>
+<td>.lib</td>
+<td style="text-align:center">add_library</td>
+</tr>
+<tr>
+<td>.dll</td>
+<td style="text-align:center">add_library(SHARED)</td>
+</tr>
+<tr>
+<td>Source Folders</td>
+<td style="text-align:center">source_group</td>
+</tr>
+<tr>
+<td>Project Folders</td>
+<td style="text-align:center">set_property(TARGET<target> PROPERTY FOLDER <name>)</name></target></td>
+</tr>
+<tr>
+<td>Properties-&gt;C/C++-&gt;Preprocessor-&gt; Preprocessor Folders</td>
+<td style="text-align:center">add_definitions</td>
+</tr>
+<tr>
+<td>Properties-&gt;C/C++-&gt;General-&gt; Additional Include Directories</td>
+<td style="text-align:center">include_directories</td>
+</tr>
+<tr>
+<td>Properties-&gt;Linker-&gt;General-&gt; Additional Library Directories</td>
+<td style="text-align:center">link_directories</td>
+</tr>
+<tr>
+<td>Properties-&gt;Linker-&gt;Input-&gt; Additional Dependencies</td>
+<td style="text-align:center">target_link_libraries</td>
+</tr>
+</tbody>
+</table>
+<h2 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h2><h3 id="项目构建的内容"><a href="#项目构建的内容" class="headerlink" title="项目构建的内容"></a>项目构建的内容</h3><p><br></p>
+<blockquote>
+<ol>
+<li>需要在Visual Studio 2010中创建一个Tutorial.sln；</li>
+<li>该解决方案包括app.vcproj，math.vcproj；</li>
+<li>app.vcproj的main.cpp中实现的是两个功能，加法和开平方；</li>
+<li>math.vcproj为app.vcproj提供计算方法；</li>
+<li>math.vcproj最终形成.dll。供app.vcproj调用；</li>
+<li>app.vcproj最终形成可执行文件.exe；</li>
+</ol>
+</blockquote>
+<h3 id="需要实现的需求"><a href="#需要实现的需求" class="headerlink" title="需要实现的需求"></a>需要实现的需求</h3><p><br></p>
+<blockquote>
+<ol>
+<li>在Visual Studio 2010中创建一个Tutorial.sln；</li>
+<li>将创建过程中生成的项目文件以及二进制文件存放到工程文件    build/VC10；</li>
+<li>将Tutorial.sln中生成的CMake相关项目，app.vcproj，math.vcproj，在项目列表中通过建立Solution Folder的方式进行分类    管理；</li>
+<li>设定math.vcproj搜索源文件(.h .cpp)方式，将其构建成.dll并指定输出路径，设置其依赖于app.vcproj；</li>
+<li>设定app.vcproj头文件引用路径，将其构建成.exe并指定最终输出目录；<br>注：以上功能均可通过源文件目录中各级的CMakeLists.txt实现；</li>
+</ol>
+</blockquote>
+<h3 id="构建步骤"><a href="#构建步骤" class="headerlink" title="构建步骤"></a>构建步骤</h3><p><br></p>
+<blockquote>
+<ul>
+<li>目录结构说明：<ul>
+<li>build/VC10为工程目录；</li>
+<li>src, ThirdParty为源代码目录；</li>
+<li>分别在各级目录创建CMakeLists.txt；</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p>  <img src="http://wx4.sinaimg.cn/mw690/7f297226gy1fs3mky6t86j215w0cnwl2.jpg" alt="图片">  </p>
+<blockquote>
+<ul>
+<li>执行流程：<ul>
+<li>启动cmake-gui；</li>
+<li>指定 F:/CMakeTest/Tutorial为 source code 目录；</li>
+<li>指定 F:/CMakeTest/Tutorial/build/VC10为 binaries 目录；这里反映到CMakeLists.txt里即是定义变量的值:<br><code>${PROJECT_BINARY_DIR} 代表 F:/CMakeTest/Tutorial/build/VC10</code><br><code>${PROJECT_SOURCE_DIR} 代表 F:/CMakeTest/Tutorial</code></li>
+<li>依次启动cmake-gui中的Configure 和 Generate；<br><br></li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p><br></p>
+<blockquote>
+<ul>
+<li>硬盘目录结果<ul>
+<li>配置完成之后的目录，dll，lib，resource文件夹，分别存放.dll  .lib .exe文件；</li>
+<li>bin文件夹存放最终产生的可执行文件以及编译产生的文件；</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p> <img src="http://wx4.sinaimg.cn/mw690/7f297226gy1fs7jf81iujj20s80gygrh.jpg" alt="图片">  </p>
+<blockquote>
+<ul>
+<li>VS中的结构<br>这里有几个project，先解释下:<br><img src="http://wx1.sinaimg.cn/mw690/7f297226gy1fs7jf8oj49j206m0c274o.jpg" alt="图片"><ul>
+<li><strong>INSTALL</strong><br>CMake install specification. It is simulating the Linux make install so it has to be manually built after the full build. </li>
+<li><strong>Run_TESTS</strong><br>CMake test specification. This project will enable running tests in VS and the test run report will be shown in the output window;</li>
+<li><strong>ZERO_CHECK</strong><br>Used to make sure that the project files are up-to-date with respect to the CMakeLists.txt files;</li>
+<li><strong>ALL_BUILD</strong><br>Builds all projects with itd dependency order; </li>
+</ul>
+</li>
+<li>编译运行顺序：<ol>
+<li>需要将app设为启动项；</li>
+<li>build INSTALL.vcproj；</li>
+<li>build sln；<br><br></li>
+</ol>
+</li>
+</ul>
+</blockquote>
+<h3 id="运行实例"><a href="#运行实例" class="headerlink" title="运行实例"></a>运行实例</h3><p><br></p>
+<blockquote>
+<ul>
+<li>Set app.vcproj as StartUp Project；</li>
+<li>Set app.vcproj Properties；</li>
+<li>Set Properties-&gt;Debugging-&gt;Command to ..\bin\app.exe.  Set Properties-&gt;Debugging-&gt;Command Arguments to 200；</li>
+<li>build Solution；</li>
+<li>build INSTALL；</li>
+<li>Ctrl+F5<br><img src="http://wx4.sinaimg.cn/mw690/7f297226gy1fs7jf7bmpaj20it0baq3v.jpg" alt="图片"></li>
+</ul>
+</blockquote>
+<p><br></p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p><br></p>
+<blockquote>
+<p>本次实例所使用的主要命令和CMakeList.txt;</p>
+</blockquote>
+<h3 id="CMakeLists主要命令"><a href="#CMakeLists主要命令" class="headerlink" title="CMakeLists主要命令"></a>CMakeLists主要命令</h3><p><br></p>
+<pre><code>project (Tutorial)  
+// 创建Solution Name
+set_property(GLOBAL PROPERTY USE_FOLDERS ON) 
+// 启动.vcproj管理状态
+add_subdirectory(src) 
+// 向工程目录(build/VC10)添加同名文件夹
+set (ADVANCED_FUNCTION_SOURCES “advanced/AdvancedFunctions.h” “advanced/AdvancedFunctions.cxx”)
+// 查找文件并保存在变量ADVANCED_FUNCTION_SOURCES
+source_group(&quot;advanced&quot; FILES ${ADVANCED_FUNCTION_SOURCES}) 
+// 将变量所指的文件在VS中存放到对应文件夹&quot;advanced&quot; 
+add_library(math SHARED ${MATH_SOURCES} ${SIMPLE_FUNCTION_SOURCES} ${ADVANCED_FUNCTION_SOURCES})
+set( LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib )
+// 上两句是创建动态链接库，并指定输出路径
+add_executable (app main.cxx)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/resource)
+// 上两句是创建可执行文件，并指定输出路径
+target_link_libraries (app  math)
+// 将math.vcproj添加到app.vcproj做为依赖项
+install (TARGETS app RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin)
+// 使用INSTALL.vcproj将app.exe安装到指定目录
+</code></pre><h3 id="CMakeLists内容"><a href="#CMakeLists内容" class="headerlink" title="CMakeLists内容"></a>CMakeLists内容</h3><p><br></p>
+<blockquote>
+<p><strong>F:\CMakeTest\Tutorial</strong></p>
+</blockquote>
+<pre><code>cmake_minimum_required (VERSION 2.6)
+Maps to a solution file (Tutorial.sln). The solution will
+// have all targets (exe, lib, dll) as projects (.vcproj)
+project (Tutorial)
+// Turn on the ability to create folders to organize projects (.vcproj)
+// It creates &quot;CMakePredefinedTargets&quot; folder by default and adds Cmake
+// defined projects like INSTALL.vcproj and ZERO_CHECK.vcproj
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+// Set compiler flags and options.
+// Here it is setting the Visual Studio warning level to 4
+set (CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} /W4&quot;)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)    
+// Command to output information to the console
+// Useful for displaying errors, warnings, and debugging
+message (“cxx Flags: ” ${CMAKE_CXX_FLAGS})
+// Sub-directories where more CMakeLists.txt exist
+add_subdirectory(src)
+add_subdirectory(lib)
+</code></pre><blockquote>
+<p><strong> F:\CMakeTest\Tutorial\ThirdParty </strong></p>
+</blockquote>
+<pre><code>cmake_minimum_required (VERSION 2.6)
+add_subdirectory (math)
+</code></pre><blockquote>
+<p><strong> F:\CMakeTest\Tutorial\src </strong></p>
+</blockquote>
+<pre><code>cmake_minimum_required (VERSION 2.6)
+add_subdirectory(app)
+add_subdirectory(sum)
+</code></pre><blockquote>
+<p><strong> F:\CMakeTest\Tutorial\src\app </strong></p>
+</blockquote>
+<pre><code>// Properties-&gt;C/C++-&gt;General-&gt;Additional Include Directories
+include_directories (&quot;${PROJECT_SOURCE_DIR}/ThirdParty/math&quot;)
+// Set Properties-&gt;General-&gt;Configuration Type to Application(.exe)
+// Creates app.exe with the listed sources (main.cxx)
+// Adds sources to the Solution Explorer
+add_executable (app main.cxx)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/resource)
+// Properties-&gt;Linker-&gt;Input-&gt;Additional Dependencies
+target_link_libraries (app  math)
+// Creates a folder &quot;executables&quot; and adds target 
+// project (app.vcproj) under it
+set_property(TARGET app PROPERTY FOLDER &quot;executables&quot;)
+// Adds logic to INSTALL.vcproj to copy app.exe to destination directory
+install (TARGETS app RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin)
+</code></pre><blockquote>
+<p><strong> F:\CMakeTest\Tutorial\ThirdParty\math </strong></p>
+</blockquote>
+<pre><code>// Collect sources into the variable MATH_SOURCES with 
+// having to explicitly list each header and source file
+file (GLOB MATH_SOURCES    &quot;*.h&quot;)
+// Collect sources into the variable SIMPLE_FUNCTION_SOURCES  
+file (GLOB SIMPLE_FUNCTION_SOURCES &quot;simple/*.h&quot;, &quot;simple/*.cxx&quot;)
+// Another way to collect sources into a variable ADVANCED_FUNCTION_SOURCES
+// by explicitly specifying the source files
+set (ADVANCED_FUNCTION_SOURCES  &quot;advanced/AdvancedFunctions.h&quot; &quot;advanced/AdvancedFunctions.cxx&quot;)
+// Create named folders for the sources within the .vcproj
+// Empty name lists them directly under the .vcproj
+source_group(&quot;&quot; FILES ${MATH_SOURCES})
+source_group(&quot;simple&quot; FILES ${SIMPLE_FUNCTION_SOURCES})
+source_group(&quot;advanced&quot; FILES ${ADVANCED_FUNCTION_SOURCES})
+// Properties-&gt;C/C++-&gt;General-&gt;Additional Include Directories
+include_directories (.)
+// By default the directories are appended onto the current list of directories
+// Set Properties-&gt;General-&gt;Configuration Type to Dynamic Library(.dll)
+// Creates math.dll with the listed sources collected in the variables
+// Also adds sources to the Solution Explorer
+add_library(math SHARED ${MATH_SOURCES} ${SIMPLE_FUNCTION_SOURCES} ${ADVANCED_FUNCTION_SOURCES})
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+// Creates a folder &quot;libraries&quot; and adds target project (math.vcproj) under it
+set_property(TARGET math PROPERTY FOLDER &quot;libraries&quot;)
+// Adds logic to INSTALL.vcproj to copy math.dll to the destination directory
+install (TARGETS math RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin)
+</code></pre><p><br></p>
+<h3 id="进阶书籍"><a href="#进阶书籍" class="headerlink" title="进阶书籍"></a>进阶书籍</h3><p><br></p>
+<blockquote>
+<p>   想要进阶的朋友，可以参看Mastering_CMake这本书，可以说非常全面的讲述了CMake的各种用法了。</p>
+</blockquote>
+<hr>
+<p>End of it</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+          
+    <div style="text-align:center;color: #ccc;font-size:14px;">
+        ------ 本文结束<i class="fa fa-paw"></i>感谢您的阅读 ------</div>
+  
+
+
+      </div>
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    DevWang
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://yoursite.com/2018/06/08/CMake在构建MSVC项目中的应用/" title="CMake在构建MSVC项目中的应用">http://yoursite.com/2018/06/08/CMake在构建MSVC项目中的应用/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/构建工具/" rel="tag"> <i class="fa fa-tag"></i> -构建工具</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/05/写在开始/" rel="next" title="写在开始">
+                <i class="fa fa-chevron-left"></i> 写在开始
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.png"
+                alt="DevWang" />
+            
+              <p class="site-author-name" itemprop="name">DevWang</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake简介"><span class="nav-number">2.</span> <span class="nav-text">CMake简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake的安装"><span class="nav-number">3.</span> <span class="nav-text">CMake的安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake的使用"><span class="nav-number">4.</span> <span class="nav-text">CMake的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CMake的使用方法"><span class="nav-number">4.1.</span> <span class="nav-text">CMake的使用方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CMakeLists-txt编写"><span class="nav-number">4.2.</span> <span class="nav-text">CMakeLists.txt编写</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake与Visual-Studio"><span class="nav-number">5.</span> <span class="nav-text">CMake与Visual Studio</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CMake在Visual-Studio中的使用"><span class="nav-number">5.1.</span> <span class="nav-text">CMake在Visual Studio中的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CMake-Command-Mapping-To-VS"><span class="nav-number">5.2.</span> <span class="nav-text">CMake Command Mapping To VS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用实例"><span class="nav-number">6.</span> <span class="nav-text">应用实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目构建的内容"><span class="nav-number">6.1.</span> <span class="nav-text">项目构建的内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#需要实现的需求"><span class="nav-number">6.2.</span> <span class="nav-text">需要实现的需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建步骤"><span class="nav-number">6.3.</span> <span class="nav-text">构建步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结果"><span class="nav-number">6.4.</span> <span class="nav-text">结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行实例"><span class="nav-number">6.5.</span> <span class="nav-text">运行实例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#附录"><span class="nav-number">7.</span> <span class="nav-text">附录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CMakeLists主要命令"><span class="nav-number">7.1.</span> <span class="nav-text">CMakeLists主要命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CMakeLists内容"><span class="nav-number">7.2.</span> <span class="nav-text">CMakeLists内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进阶书籍"><span class="nav-number">7.3.</span> <span class="nav-text">进阶书籍</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DevWang</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("spuEJDONFW4UpRKqLYY0kd9a-gzGzoHsz", "CFwLVAeiRbxtsmiKGGhXlNN8");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
